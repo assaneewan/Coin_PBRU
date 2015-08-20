@@ -22,7 +22,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private BitmapFont nameBitmapFont;
 	private int xCloudAnInt,yCloudAnInt=580;
 	private int xAtomRAnInt,yAtomRAnInt = 580;
-	private int xAtomLAnInt, yAtomLAnInt;
+	private int xAtomLAnInt, yAtomLAnInt = 1204;
 	private boolean atomRABoolean, atomLABoolean = true;
 	private boolean cloudABoolean = true;
 	private Rectangle pigRectangle;
@@ -122,10 +122,12 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	private void moveAtom() {
 		if (atomRABoolean) {
-			if (xAtomRAnInt<960) {
+			if (xAtomRAnInt<994) {
 				xAtomRAnInt += 100 * Gdx.graphics.getDeltaTime();
 			} else {
 				atomRABoolean = !atomRABoolean;
+				//batch.draw(atomLTexture,xAtomLAnInt,yAtomLAnInt);
+
 			}
 		} else {
 			if (xAtomRAnInt>0) {

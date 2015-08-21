@@ -10,14 +10,20 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
+
+import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 public class MyGdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
 	private Texture wallpaperTexture, cloudTexture, atomRTexture, atomLTexture;
-	private Texture pigTexture;
+	private Texture pigTexture, coinTexture, atomTexture;
 	private OrthographicCamera objOrthographicCamera;
 	private BitmapFont nameBitmapFont;
 	private int xCloudAnInt,yCloudAnInt=580;
@@ -25,9 +31,13 @@ public class MyGdxGame extends ApplicationAdapter {
 	private int xAtomLAnInt, yAtomLAnInt = 1204;
 	private boolean atomRABoolean, atomLABoolean = true;
 	private boolean cloudABoolean = true;
-	private Rectangle pigRectangle;
+	private Rectangle pigRectangle, coinRectangle;
 	private Vector3 objVector3;
 	private Sound pigSound;
+	private Array<Rectangle> coinsArray;
+	private long lastDropCoins;
+	private Iterator<Rectangle> coinsIterator; // Java util
+
 
 	@Override
 	public void create () {
@@ -37,16 +47,18 @@ public class MyGdxGame extends ApplicationAdapter {
 		objOrthographicCamera = new OrthographicCamera();
 		objOrthographicCamera.setToOrtho(false, 1280, 768);
 
-		wallpaperTexture = new Texture("w3.png");
+		wallpaperTexture = new Texture("ww3.png");
 
 		nameBitmapFont = new BitmapFont();
 		nameBitmapFont.setColor(Color.BLUE);
 		nameBitmapFont.scale(3);
 
 		//cloudTexture = new Texture("p3_right.png");
+		atomTexture = new Texture("p3_right.png");
 		atomRTexture = new Texture("p3_right.png");
 		atomLTexture = new Texture("p3_left.png");
 		pigTexture = new Texture("pig.png");
+
 
 		//set up Rectangle Pig
 		pigRectangle = new Rectangle();
@@ -58,9 +70,27 @@ public class MyGdxGame extends ApplicationAdapter {
 		//set up pig sound
 		pigSound = Gdx.audio.newSound(Gdx.files.internal("pig.wav"));
 
+		// set up Coins
+		coinTexture = new Texture("coins.png");
+
+		// Create coinsArray
+		coinsArray = new Array<Rectangle>();
+		coinsRandomDrop();
+
+	} // create เอาไว้กำหนดค่า
+
+	private void coinsRandomDrop() {
+
+		coinRectangle = new Rectangle();
+		coinRectangle.x = MathUtils.random(0, 1204);
+		coinRectangle.y = 800;
+		coinRectangle.width = 64;
+		coinRectangle.height = 64;
+		coinsArray.add(coinRectangle); //
+		lastDropCoins = TimeUtils.nanoTime(); //ไม่ให้ 2 เหรียญหล่นชนกัน
 
 
-	}
+	} // นี่คือ coins random
 
 	@Override
 	public void render () {
@@ -81,17 +111,41 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.draw(pigTexture,pigRectangle.x,pigRectangle.y);
 
 		//drawable atom
-		batch.draw(atomRTexture,xAtomRAnInt,yAtomRAnInt);
+		batch.draw(atomTexture,xAtomRAnInt,yAtomRAnInt);
 		nameBitmapFont.draw(batch, "Coin PBRU", 50, 750);
 
+		//drawable coins
+		for (Rectangle forCoins : coinsArray) {
+			batch.draw(coinTexture,forCoins.x,forCoins.y);
+		}
 		batch.end();
-
 		//move cloud
 		//moveCloud();
 		moveAtom();
 		//Active When Touch Screen
 		activeTouchScreen();
+
+		// Random Drop Coins
+		randomDropCoins();
 	}
+
+	private void randomDropCoins() {
+
+		// 1E9 คือ 1 วินาที กำหนดเป็นเลขยกำลัง
+		if (TimeUtils.nanoTime()-lastDropCoins > 1E9) {
+			coinsRandomDrop();
+		}
+		coinsIterator = coinsArray.iterator();
+		while (coinsIterator.hasNext()) {
+			Rectangle myCoinsRectangle = coinsIterator.next();
+			myCoinsRectangle.y -= 50 * Gdx.graphics.getDeltaTime();
+			//When Coins into Floor
+			if (myCoinsRectangle.y + 64 < 0) {
+				coinsIterator.remove();
+
+			}
+		}
+	} //randomDropCoins
 
 	private void activeTouchScreen() {
 		// นิ้วสัมผัสจอ
@@ -126,7 +180,8 @@ public class MyGdxGame extends ApplicationAdapter {
 				xAtomRAnInt += 100 * Gdx.graphics.getDeltaTime();
 			} else {
 				atomRABoolean = !atomRABoolean;
-				//batch.draw(atomLTexture,xAtomLAnInt,yAtomLAnInt);
+				atomTexture = atomLTexture;
+				//batch.draw(atomLTexture,xAtomRAnInt,yAtomRAnInt);
 
 			}
 		} else {
@@ -134,6 +189,9 @@ public class MyGdxGame extends ApplicationAdapter {
 				xAtomRAnInt -= 100 * Gdx.graphics.getDeltaTime();
 			} else {
 				atomRABoolean = !atomRABoolean;
+				atomTexture = atomRTexture;
+
+				//batch.draw(atomRTexture,xAtomRAnInt,yAtomRAnInt);
 			}
 		}
 	}

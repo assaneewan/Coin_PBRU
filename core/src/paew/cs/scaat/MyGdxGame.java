@@ -33,7 +33,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private boolean cloudABoolean = true;
 	private Rectangle pigRectangle, coinRectangle;
 	private Vector3 objVector3;
-	private Sound pigSound;
+	private Sound pigSound, waterDropSound, coinDropSound;
 	private Array<Rectangle> coinsArray;
 	private long lastDropCoins;
 	private Iterator<Rectangle> coinsIterator; // Java util
@@ -69,6 +69,10 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		//set up pig sound
 		pigSound = Gdx.audio.newSound(Gdx.files.internal("pig.wav"));
+		// set up water drop
+		waterDropSound = Gdx.audio.newSound(Gdx.files.internal("water_drop.wav"));
+		// set up coin drop sound
+		coinDropSound = Gdx.audio.newSound(Gdx.files.internal("coins_drop.wav"));
 
 		// set up Coins
 		coinTexture = new Texture("coins.png");
@@ -139,12 +143,22 @@ public class MyGdxGame extends ApplicationAdapter {
 		while (coinsIterator.hasNext()) {
 			Rectangle myCoinsRectangle = coinsIterator.next();
 			myCoinsRectangle.y -= 50 * Gdx.graphics.getDeltaTime();
+
 			//When Coins into Floor
 			if (myCoinsRectangle.y + 64 < 0) {
-				coinsIterator.remove();
+				waterDropSound.play();
+				coinsIterator.remove(); // เหรียญหายไปคืนหน่วยความจำให้ระบบ
 
-			}
-		}
+			} // if
+			// When Coins Overlap Pig
+			// การ overlaps บางส่วนของภาพไปโดนบางส่วนของอีกภาพ
+			if (myCoinsRectangle.overlaps(pigRectangle)) {
+				coinDropSound.play();
+				coinsIterator.remove();
+			} // if
+
+		} // while loop
+
 	} //randomDropCoins
 
 	private void activeTouchScreen() {
@@ -181,7 +195,6 @@ public class MyGdxGame extends ApplicationAdapter {
 			} else {
 				atomRABoolean = !atomRABoolean;
 				atomTexture = atomLTexture;
-				//batch.draw(atomLTexture,xAtomRAnInt,yAtomRAnInt);
 
 			}
 		} else {
@@ -191,7 +204,6 @@ public class MyGdxGame extends ApplicationAdapter {
 				atomRABoolean = !atomRABoolean;
 				atomTexture = atomRTexture;
 
-				//batch.draw(atomRTexture,xAtomRAnInt,yAtomRAnInt);
 			}
 		}
 	}
